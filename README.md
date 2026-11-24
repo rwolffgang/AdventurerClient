@@ -47,9 +47,9 @@ Files that are already `.gx` (for example from FlashPrint) are uploaded unchange
 
 Download the latest version from the [Releases page](https://github.com/rwolffgang/AdventurerClient/releases/latest):
 
-- **Windows:** `AdventurerClient-win.exe` (installer for 32- and 64-bit Windows)
-- **macOS, Apple silicon (M1 and later):** `AdventurerClient-macarm64.dmg`
-- **macOS, Intel:** `AdventurerClient-macx64.dmg`
+- **Windows 10 and 11 (64-bit):** `AdventurerClient-win.exe`
+- **macOS 12 Monterey or later, Apple silicon (M1 and later):** `AdventurerClient-macarm64.dmg`
+- **macOS 12 Monterey or later, Intel:** `AdventurerClient-macx64.dmg`
 
 On macOS, open the `.dmg` and drag **Adventurer Client** into **Applications**.
 
@@ -80,7 +80,7 @@ To build installers into `src/distPackages`:
 
 ```bash
 npm run distmac     # .dmg for Intel and Apple silicon
-npm run distwin     # NSIS installer for 32- and 64-bit Windows
+npm run distwin     # NSIS installer for 64-bit Windows
 npm run distlinux   # AppImage and .deb
 ```
 

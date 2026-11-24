@@ -2,6 +2,7 @@ import { ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit, ViewChild 
 import { PrinterService } from '../../services/printerService';
 import { IsTransferBusy, TransferState } from '../../services/iPrinterService';
 import { DataSaver, RecentPrintEntry } from '../../../core/dataSaver';
+import { GetPathForFile } from '../../../core/appInfo';
 
 const fs = window.require('fs');
 
@@ -71,7 +72,7 @@ export class PrintComponent implements OnInit, OnDestroy {
 
   public uploadFile(event): void {
     const file = event?.[0];
-    const path = file?.path;
+    const path = file ? GetPathForFile(file) : '';
 
     // Clear the picker so choosing the same file again still fires a change.
     if (this.fileInput?.nativeElement) {

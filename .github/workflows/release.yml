@@ -3,11 +3,17 @@ name: Release
 # Push a version tag (for example v1.2.0) to build the Windows installer and the
 # macOS disk images and attach them to a GitHub release for that tag.
 # Run it by hand from the Actions tab to build them without publishing a release;
-# the files are then attached to the workflow run.
+# the files are then attached to the workflow run. Pull requests that change the
+# packaging set-up also build them, so a broken build shows up before a release.
 
 on:
   push:
     tags: ['v*']
+  pull_request:
+    paths:
+      - '.github/workflows/release.yml'
+      - 'src/package.json'
+      - 'src/package-lock.json'
   workflow_dispatch:
 
 permissions:

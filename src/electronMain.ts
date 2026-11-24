@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, ipcMain, shell } from 'electron';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
@@ -38,9 +38,11 @@ function createWindow(): void {
     minHeight: 600,
     minWidth: 820,
     webPreferences: {
+      // The renderer talks to the printer over a raw TCP socket and reads
+      // G-code files, so it needs Node.js APIs.
       nodeIntegration: true,
       contextIsolation: false,
-      enableRemoteModule: true,
+      sandbox: false,
     },
   });
 
@@ -58,12 +60,21 @@ function createWindow(): void {
       }));
   }
 
-  mainWindow.webContents.on('new-window', (e, uri) => {
-    e.preventDefault();
+  // Open links in the default browser instead of a new app window.
+  mainWindow.webContents.setWindowOpenHandler(({ url: uri }) => {
     appendMainLog('Opening external link: ' + uri);
-    require('electron').shell.openExternal(uri);
+    shell.openExternal(uri);
+    return { action: 'deny' };
   });
 }
+
+// The renderer asks for these once at startup (see electronApp/core/appInfo.ts).
+ipcMain.on('app-info', (event) => {
+  event.returnValue = {
+    version: app.getVersion(),
+    userDataPath: app.getPath('userData'),
+  };
+});
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.

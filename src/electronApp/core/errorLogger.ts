@@ -1,3 +1,5 @@
+import { GetAppInfo } from './appInfo';
+
 const fs = window.require('fs');
 const path = window.require('path');
 const os = window.require('os');
@@ -145,8 +147,7 @@ export class ErrorLogger {
         let logsDirectory: string;
 
         try {
-            const electron = window.require('electron');
-            logsDirectory = path.join(electron.remote.app.getPath('userData'), 'logs');
+            logsDirectory = path.join(GetAppInfo().userDataPath, 'logs');
         } catch {
             if (process.platform === 'win32') {
                 logsDirectory = path.join(

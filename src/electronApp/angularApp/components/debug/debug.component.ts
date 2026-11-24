@@ -3,6 +3,7 @@ import { FormControl, Validators } from '@angular/forms';
 import { PrinterService } from '../../services/printerService';
 import { UiStateService } from '../../services/uiStateService';
 import { ErrorLogger } from '../../../core/errorLogger';
+import { GetAppInfo } from '../../../core/appInfo';
 
 const path = window.require('path');
 
@@ -23,7 +24,7 @@ export class DebugComponent {
   public readonly LogFilePath = ErrorLogger.GetLogFilePath();
   public readonly LogFileDirectory = path.dirname(this.LogFilePath) + path.sep;
   public readonly LogFileName = path.basename(this.LogFilePath);
-  public readonly AppVersion: string = window.require('electron').remote.app.getVersion();
+  public readonly AppVersion: string = GetAppInfo().version;
   public LogLines: DebugLogLine[] = [];
 
   PrinterCommand = new FormControl('', [Validators.required]);
