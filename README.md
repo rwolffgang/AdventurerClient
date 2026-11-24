@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img src="docs/images/screenshot.png" width="720" alt="Adventurer Client connected to a printer">
+  <img src="docs/images/screenshot.png" width="720" alt="Adventurer Client showing a printer mid-print, with temperatures, print controls and recent prints">
 </p>
 
 ## About
