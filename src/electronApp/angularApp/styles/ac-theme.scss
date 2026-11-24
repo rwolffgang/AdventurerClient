@@ -1,0 +1,186 @@
+:root {
+  --accent: #663399;
+  --accent-soft: rgba(102, 51, 153, 0.13);
+  --accent-softer: rgba(102, 51, 153, 0.06);
+  --text-primary: #1F1C1A;
+  --text-secondary: #7C746D;
+  --text-muted: #928981;
+  --text-label: #ABA39C;
+  --surface: #F6F4F2;
+  --surface-card: #FFFFFF;
+  --border: #ECE7E2;
+  --border-card: #EDE8E3;
+  --border-input: #E1DAD3;
+  --success: #3E8E5A;
+  --danger: #C0473A;
+  --warning: #C98A2E;
+}
+
+@keyframes ac-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes ac-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #DAD3CC;
+  border-radius: 6px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+
+.ac-mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.ac-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-label);
+}
+
+.ac-card {
+  background: var(--surface-card);
+  border: 1px solid var(--border-card);
+  border-radius: 16px;
+  padding: 18px;
+}
+
+.ac-button {
+  font-family: inherit;
+  cursor: pointer;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  transition: background 0.15s ease, filter 0.15s ease, color 0.15s ease;
+}
+
+.ac-button-secondary {
+  border: 1px solid var(--border);
+  background: var(--surface-card);
+  color: #5C554F;
+}
+
+.ac-button-secondary:hover {
+  background: #F4F1EE;
+  color: var(--text-primary);
+}
+
+.ac-button-primary {
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+
+.ac-button-primary:hover {
+  filter: brightness(0.95);
+}
+
+.ac-button-danger {
+  border: 1px solid #E7C9C3;
+  background: var(--surface-card);
+  color: var(--danger);
+}
+
+.ac-button-danger:hover {
+  background: #FBF1EF;
+}
+
+.ac-spinner {
+  width: 17px;
+  height: 17px;
+  border: 2.2px solid var(--accent-soft);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: ac-spin 0.7s linear infinite;
+  flex: none;
+}
+
+.ac-spinner-large {
+  width: 34px;
+  height: 34px;
+  border-width: 3px;
+  animation-duration: 0.8s;
+}
+
+.ac-progress-track {
+  height: 6px;
+  border-radius: 4px;
+  background: #F0EBE6;
+  overflow: hidden;
+}
+
+.ac-progress-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: var(--accent);
+  transition: width 0.2s ease;
+}
+
+.ac-toggle {
+  width: 42px;
+  height: 25px;
+  border-radius: 999px;
+  position: relative;
+  cursor: pointer;
+  flex: none;
+  transition: background 0.15s ease;
+}
+
+.ac-toggle-knob {
+  position: absolute;
+  top: 3px;
+  width: 19px;
+  height: 19px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.22);
+  transition: left 0.15s ease;
+}
+
+.ac-toggle-on {
+  background: var(--accent);
+}
+
+.ac-toggle-on .ac-toggle-knob {
+  left: 20px;
+}
+
+.ac-toggle-off {
+  background: #D8D2CC;
+}
+
+.ac-toggle-off .ac-toggle-knob {
+  left: 3px;
+}
+
+.ac-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 11px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.ac-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}

@@ -1,0 +1,191 @@
+.ac-print-card {
+  text-align: left;
+}
+
+.ac-print-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.ac-file-types {
+  font-size: 11px;
+  color: var(--text-muted);
+  background: #F4F1EE;
+  padding: 4px 9px;
+  border-radius: 7px;
+}
+
+.ac-drop-zone {
+  border-radius: 14px;
+  padding: 30px 22px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 2px dashed rgba(102, 51, 153, 0.4);
+  background: var(--accent-softer);
+}
+
+.ac-drop-zone-active {
+  border: 2px solid var(--accent);
+  background: var(--accent-soft);
+}
+
+.ac-drop-zone-disabled {
+  cursor: not-allowed;
+  opacity: 0.72;
+}
+
+.ac-drop-title {
+  font-size: 15.5px;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+.ac-drop-subtitle {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.ac-drop-note {
+  font-size: 12px;
+  color: var(--text-label);
+  margin-top: 2px;
+}
+
+.ac-print-error {
+  margin-top: 8px;
+  color: var(--danger);
+  font-size: 13px;
+}
+
+.ac-print-state {
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  text-align: center;
+  padding: 20px;
+}
+
+.ac-print-state-title {
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.ac-print-progress-block {
+  width: 100%;
+  max-width: 340px;
+}
+
+.ac-progress-track-large {
+  height: 8px;
+  border-radius: 5px;
+}
+
+.ac-print-progress-label {
+  margin-top: 9px;
+  font-size: 13px;
+  color: #5C554F;
+}
+
+.ac-print-icon {
+  width: 54px;
+  height: 54px;
+  border-radius: 14px;
+  background: var(--accent-softer);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ac-print-complete-icon {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: rgba(62, 142, 90, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ac-print-state-file {
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.ac-print-another-button {
+  margin-top: 4px;
+  height: 42px;
+  padding: 0 20px;
+  border-radius: 11px;
+  font-size: 14px;
+}
+
+.ac-recent-prints {
+  margin-top: 16px;
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  overflow: hidden;
+}
+
+.ac-recent-prints-label {
+  padding: 9px 15px 5px;
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-label);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.ac-recent-print-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 15px;
+}
+
+.ac-recent-print-item + .ac-recent-print-item {
+  border-top: 1px solid var(--border);
+}
+
+.ac-recent-print-name {
+  font-size: 13px;
+  color: #3A342F;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.ac-recent-print-button {
+  flex: none;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 8px;
+  font-size: 12.5px;
+}
+
+.ac-recent-print-unavailable {
+  flex: none;
+  font-size: 12px;
+  color: var(--text-label);
+}

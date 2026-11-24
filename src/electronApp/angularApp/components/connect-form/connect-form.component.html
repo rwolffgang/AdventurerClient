@@ -1,0 +1,43 @@
+<div class="ac-connect-screen">
+  <div class="ac-connect-card">
+    <div class="ac-label">Adventurer Client</div>
+    <div class="ac-connect-heading">Hello!</div>
+    <div class="ac-connect-subtitle">Enter your printer's IP address to connect over Wi-Fi.</div>
+
+    <div class="ac-ip-field">
+      <input
+        class="ac-ip-input ac-mono"
+        [formControl]="PrinterAddress"
+        (keyup.enter)="connect()"
+        (focus)="OpenSuggestions()"
+        (blur)="BlurSuggestions()"
+        placeholder="192.168.x.x"
+        inputmode="decimal"
+        #ipInput>
+      <div *ngIf="SuggestionsOpen" class="ac-suggestions">
+        <div class="ac-suggestions-label">Recent printers</div>
+        <button
+          *ngFor="let address of FilteredSuggestions"
+          type="button"
+          class="ac-suggestion-item ac-mono"
+          (mousedown)="SelectSuggestion(address)">
+          <span class="ac-suggestion-dot"></span>{{ address }}
+        </button>
+      </div>
+    </div>
+
+    <button class="ac-connect-button ac-button ac-button-primary" type="button" [disabled]="isConnecting" (click)="connect()">
+      <span *ngIf="isConnecting" class="ac-spinner ac-spinner-white"></span>
+      {{ isConnecting ? 'Connecting…' : 'Connect' }}
+    </button>
+
+    <div *ngIf="isError" class="ac-connect-error">
+      <span class="ac-error-icon">!</span>
+      Failed to connect — is the address correct?
+    </div>
+
+    <div *ngIf="AutoConnectEnabled" class="ac-connect-footnote ac-mono">
+      <span class="ac-footnote-dot"></span>Last printer remembered · auto-reconnects on launch
+    </div>
+  </div>
+</div>

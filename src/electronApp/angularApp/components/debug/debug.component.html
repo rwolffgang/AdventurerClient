@@ -1,0 +1,54 @@
+<div class="ac-settings-section">
+  <div class="ac-label">Display</div>
+
+  <div class="ac-settings-row">
+    <div>
+      <div class="ac-settings-row-title">Printer camera</div>
+      <div class="ac-settings-row-subtitle">Show live video when available</div>
+    </div>
+    <div
+      class="ac-toggle"
+      [class.ac-toggle-on]="UiState.showCamera"
+      [class.ac-toggle-off]="!UiState.showCamera"
+      (click)="ToggleCamera()">
+      <div class="ac-toggle-knob"></div>
+    </div>
+  </div>
+
+  <div class="ac-settings-row ac-settings-row-divider">
+    <div>
+      <div class="ac-settings-row-title">Auto-connect</div>
+      <div class="ac-settings-row-subtitle">Reconnect to last printer on launch</div>
+    </div>
+    <div
+      class="ac-toggle"
+      [class.ac-toggle-on]="UiState.autoConnectEnabled"
+      [class.ac-toggle-off]="!UiState.autoConnectEnabled"
+      (click)="ToggleAutoConnect()">
+      <div class="ac-toggle-knob"></div>
+    </div>
+  </div>
+
+  <div class="ac-label ac-settings-section-gap">Debug</div>
+  <div class="ac-settings-row-subtitle">Log files are saved to</div>
+  <div class="ac-log-path ac-mono">
+    {{ LogFileDirectory }}<button type="button" class="ac-log-file-link" (click)="OpenLogFile()">{{ LogFileName }}</button>
+  </div>
+
+  <div class="ac-settings-row-subtitle ac-command-label">Send a raw command</div>
+  <div class="ac-command-row">
+    <input
+      class="ac-command-input ac-mono"
+      [formControl]="PrinterCommand"
+      (keydown.enter)="sendCommand()"
+      placeholder="e.g. M115">
+    <button class="ac-button ac-send-command-button" type="button" (click)="sendCommand()">Send</button>
+  </div>
+
+  <div class="ac-command-log ac-mono">
+    <span *ngIf="LogLines.length === 0" class="ac-command-log-empty">No commands sent yet.</span>
+    <div *ngFor="let line of LogLines" class="ac-command-log-line" [style.color]="line.color">{{ line.text }}</div>
+  </div>
+
+  <div class="ac-settings-footer ac-mono">Adventurer Client · build {{ AppVersion }}</div>
+</div>

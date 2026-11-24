@@ -1,0 +1,70 @@
+.ac-camera-card {
+  text-align: left;
+}
+
+.ac-camera-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 13px;
+}
+
+.ac-live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--danger);
+}
+
+.ac-live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--danger);
+  animation: ac-pulse 1.6s ease-in-out infinite;
+}
+
+.ac-camera-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  border-radius: 11px;
+  overflow: hidden;
+  background: repeating-linear-gradient(
+    45deg,
+    #2A2622,
+    #2A2622 11px,
+    #322D28 11px,
+    #322D28 22px
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ac-camera-feed {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.ac-camera-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 9px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.ac-camera-placeholder-text {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+}
+
+.ac-camera-help {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 12px;
+}

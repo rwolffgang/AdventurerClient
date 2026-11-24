@@ -1,0 +1,95 @@
+{
+  "name": "adventurerclient",
+  "version": "1.0.0",
+  "description": "Desktop app for controlling FlashForge Adventurer 3D printers over the network",
+  "author": "Robert Wolffgang",
+  "contributors": [
+    "Andy Bradford (original AdventurerClientJS)"
+  ],
+  "license": "MIT",
+  "repository": "https://github.com/rwolffgang/AdventurerClient",
+  "main": "electronMain.js",
+  "build": {
+    "appId": "io.github.rwolffgang.adventurerclient",
+    "productName": "Adventurer Client",
+    "artifactName": "AdventurerClient-${os}${arch}.${ext}",
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "category": "public.app-category.utilities"
+    },
+    "directories": {
+      "output": "distPackages"
+    },
+    "dmg": {
+      "window": {
+        "height": 290
+      },
+      "contents": [
+        {
+          "x": 68,
+          "y": 125
+        },
+        {
+          "x": 337,
+          "y": 125,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ]
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ]
+    }
+  },
+  "scripts": {
+    "ng": "ng",
+    "postinstall": "install-app-deps",
+    "build": "tsc electronMain.ts && cross-env NODE_OPTIONS=--openssl-legacy-provider ng build --base-href ./",
+    "electron": "npm run build && electron .",
+    "electron:dev": "concurrently -k -n serve,tsc,electron -c blue,yellow,green \"npm run ng:serve\" \"npm run electron:main:watch\" \"npm run electron:start:dev\"",
+    "ng:serve": "cross-env NODE_OPTIONS=--openssl-legacy-provider ng serve --port 4200",
+    "electron:main:watch": "tsc electronMain.ts --watch --preserveWatchOutput",
+    "electron:start:dev": "wait-on http://localhost:4200 file:electronMain.js && cross-env ELECTRON_DEV=1 electron .",
+    "distwin": "npm run build && electron-builder --win --ia32 --x64 --publish never",
+    "distmac": "npm run build && electron-builder --mac --x64 --arm64 --publish never",
+    "distlinux": "npm run build && electron-builder --linux --x64 --arm64 --publish never"
+  },
+  "private": true,
+  "dependencies": {
+    "@angular/common": "^12.2.3",
+    "@angular/compiler": "^12.2.3",
+    "@angular/core": "^12.2.3",
+    "@angular/forms": "^12.2.3",
+    "@angular/platform-browser": "^12.2.3",
+    "@angular/platform-browser-dynamic": "^12.2.3",
+    "mjpeg-camera": "^2.0.0",
+    "rxjs": "^7.3.0",
+    "tslib": "^2.2.0",
+    "zone.js": "^0.11.4"
+  },
+  "devDependencies": {
+    "@angular-devkit/build-angular": "^12.2.3",
+    "@angular/cli": "^12.2.3",
+    "@angular/compiler-cli": "^12.2.3",
+    "@types/eslint": "8.4.10",
+    "@types/node": "16.11.7",
+    "@types/ws": "8.5.4",
+    "concurrently": "^8.2.2",
+    "cross-env": "^10.1.0",
+    "electron": "^12.0.5",
+    "electron-builder": "^22.10.5",
+    "electron-reload": "^1.5.0",
+    "typescript": "4.2.3",
+    "wait-on": "^7.2.0"
+  }
+}

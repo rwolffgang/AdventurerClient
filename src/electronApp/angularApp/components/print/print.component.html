@@ -1,0 +1,81 @@
+<div class="ac-card ac-print-card">
+  <div class="ac-print-header">
+    <div class="ac-section-title">Print a file</div>
+    <span class="ac-file-types ac-mono">.gx · .gcode · .g</span>
+  </div>
+
+  <input #fileInput type="file" accept=".gx,.gcode,.g" hidden (change)="uploadFile($event.target.files)">
+
+  <!-- Idle drop zone -->
+  <div
+    *ngIf="IsIdle"
+    class="ac-drop-zone"
+    [class.ac-drop-zone-disabled]="DropzoneDisabled"
+    (click)="pickFile()"
+    appDragDrop
+    (FileDropped)="uploadFile($event)">
+    <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 15V4"></path>
+      <path d="M8 8l4-4 4 4"></path>
+      <path d="M5 14v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3"></path>
+    </svg>
+    <div class="ac-drop-title">Drop a print file here</div>
+    <div class="ac-drop-subtitle">or click to browse</div>
+    <div *ngIf="!DropzoneDisabled" class="ac-drop-note">Uploading starts the print automatically</div>
+    <div *ngIf="DropzoneDisabled" class="ac-drop-note">Stop the current print from the status panel first</div>
+    <div *ngIf="ErrorMessage" class="ac-print-error">{{ ErrorMessage }}</div>
+  </div>
+
+  <!-- Uploading -->
+  <div *ngIf="IsUploading" class="ac-print-state">
+    <div class="ac-print-state-title">Uploading {{ TransferState.fileName }}</div>
+    <div class="ac-print-progress-block">
+      <div class="ac-progress-track ac-progress-track-large">
+        <div class="ac-progress-fill" [style.width.%]="UploadPercent"></div>
+      </div>
+      <div class="ac-mono ac-print-progress-label">{{ UploadPercent }}%</div>
+    </div>
+    <div class="ac-drop-note">Keep the printer powered during upload</div>
+  </div>
+
+  <!-- Saving: every byte is sent, the printer is still writing and confirming the file -->
+  <div *ngIf="IsSaving" class="ac-print-state">
+    <span class="ac-spinner ac-spinner-large"></span>
+    <div class="ac-print-state-title">Saving on the printer…</div>
+    <div class="ac-drop-subtitle">Large files can take up to a minute before the print starts</div>
+  </div>
+
+  <!-- Starting -->
+  <div *ngIf="IsStarting" class="ac-print-state">
+    <span class="ac-spinner ac-spinner-large"></span>
+    <div class="ac-print-state-title">Starting print…</div>
+    <div class="ac-drop-subtitle">Heating nozzle and bed to temperature</div>
+  </div>
+
+  <!-- Done -->
+  <div *ngIf="IsDone" class="ac-print-state">
+    <div class="ac-print-complete-icon">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#3E8E5A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="5,12.5 10,17.5 19,7"></polyline>
+      </svg>
+    </div>
+    <div class="ac-print-state-title">Print complete</div>
+    <div class="ac-mono ac-drop-subtitle">{{ TransferState.fileName }}</div>
+    <button class="ac-button ac-button-primary ac-print-another-button" type="button" (click)="PrintAnother()">Print another file</button>
+  </div>
+
+  <div *ngIf="ShowRecentPrints" class="ac-recent-prints">
+    <div class="ac-recent-prints-label">Recent prints</div>
+    <div *ngFor="let entry of RecentPrints" class="ac-recent-print-item">
+      <span class="ac-recent-print-name ac-mono" [title]="entry.filePath">{{ entry.displayName }}</span>
+      <button
+        *ngIf="entry.exists"
+        class="ac-button ac-button-secondary ac-recent-print-button"
+        type="button"
+        (click)="reprintFile(entry.filePath); $event.stopPropagation()">
+        Print again
+      </button>
+      <span *ngIf="!entry.exists" class="ac-recent-print-unavailable">File unavailable</span>
+    </div>
+  </div>
+</div>

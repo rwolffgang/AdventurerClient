@@ -1,0 +1,194 @@
+:host {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.ac-main-screen {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 20px;
+  background: var(--surface);
+}
+
+.ac-main-layout {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.ac-main-left {
+  flex: 0 0 358px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ac-main-right {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ac-status-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ac-section-title {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.ac-status-dot-pulse {
+  animation: ac-pulse 1.4s ease-in-out infinite;
+}
+
+.ac-info-grid {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 11px 16px;
+  font-size: 13.5px;
+  align-items: baseline;
+}
+
+.ac-info-label {
+  color: var(--text-muted);
+}
+
+.ac-info-value {
+  text-align: right;
+  font-weight: 500;
+}
+
+.ac-temperature-section {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid #F0EBE6;
+}
+
+.ac-temperature-section .ac-label {
+  margin-bottom: 12px;
+}
+
+.ac-temperature-row {
+  margin-bottom: 13px;
+}
+
+.ac-temperature-row:last-child {
+  margin-bottom: 0;
+}
+
+.ac-temperature-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  color: #5C554F;
+  font-size: 13px;
+}
+
+.ac-temperature-value {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.ac-temperature-target {
+  color: var(--text-label);
+}
+
+.ac-printer-controls {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid #F0EBE6;
+}
+
+.ac-print-progress-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.ac-progress-ring {
+  width: 128px;
+  height: 128px;
+  border-radius: 50%;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ac-progress-ring-inner {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: #FFFFFF;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.ac-progress-ring-value {
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.ac-progress-ring-caption {
+  font-size: 9.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-label);
+  margin-top: 1px;
+}
+
+.ac-print-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.ac-print-file {
+  font-size: 13.5px;
+  font-weight: 500;
+  margin-top: 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ac-print-note {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.ac-control-buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 15px;
+}
+
+.ac-control-button {
+  flex: 1;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
+.ac-control-button-active {
+  background: var(--accent-softer);
+  color: var(--accent);
+  border-color: rgba(102, 51, 153, 0.25);
+}

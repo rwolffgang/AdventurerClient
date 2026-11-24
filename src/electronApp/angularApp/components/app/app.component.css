@@ -1,0 +1,284 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+.ac-app {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 100vh;
+  background: var(--surface);
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+  color: var(--text-primary);
+}
+
+.ac-header {
+  flex: none;
+  height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 18px;
+  background: #FFFFFF;
+  border-bottom: 1px solid var(--border);
+}
+
+.ac-header-left,
+.ac-header-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.ac-header-right {
+  gap: 10px;
+}
+
+.ac-brand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.ac-brand-icon {
+  width: 24px;
+  height: 24px;
+  display: block;
+}
+
+.ac-brand-name {
+  font-weight: 600;
+  font-size: 14.5px;
+  letter-spacing: -0.01em;
+}
+
+.ac-connection-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 500;
+}
+
+.ac-connection-badge .ac-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.ac-connection-badge-muted {
+  background: #F2EEEA;
+  color: #8A827B;
+}
+
+.ac-connection-badge-muted .ac-status-dot {
+  background: #BDB5AD;
+}
+
+.ac-connection-badge-connected {
+  background: rgba(62, 142, 90, 0.10);
+  color: #2F7A4B;
+  font-weight: 600;
+  padding-right: 12px;
+}
+
+.ac-connection-badge-connected .ac-status-dot {
+  background: var(--success);
+}
+
+.ac-ip {
+  font-weight: 500;
+  opacity: 0.8;
+}
+
+.ac-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background: #FFFFFF;
+  color: #5C554F;
+}
+
+.ac-disconnect-button {
+  height: 34px;
+  padding: 0 13px;
+  border-radius: 9px;
+}
+
+.ac-banner {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 11px 18px;
+  background: var(--accent-softer);
+  border-bottom: 1px solid #EFE3DC;
+}
+
+.ac-banner-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.ac-banner-title {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ac-banner-progress {
+  margin-top: 7px;
+}
+
+.ac-banner-meta {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: #5B3A86;
+  flex: none;
+}
+
+.ac-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.ac-body > app-connect-form,
+.ac-body > app-status {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.ac-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+}
+
+.ac-settings-overlay {
+  background: rgba(40, 30, 24, 0.32);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.ac-settings-panel {
+  width: 374px;
+  max-width: 90%;
+  height: 100%;
+  background: #FFFFFF;
+  display: flex;
+  flex-direction: column;
+  box-shadow: -20px 0 50px -20px rgba(46, 33, 26, 0.4);
+}
+
+.ac-settings-header {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border);
+}
+
+.ac-settings-title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.ac-close-button {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: none;
+  background: #F4F1EE;
+}
+
+.ac-settings-content {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+.ac-dialog-overlay {
+  background: rgba(40, 30, 24, 0.42);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 30;
+}
+
+.ac-dialog {
+  width: 360px;
+  max-width: 100%;
+  background: #FFFFFF;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 30px 70px -20px rgba(46, 33, 26, 0.5);
+}
+
+.ac-dialog-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 13px;
+  background: rgba(192, 71, 58, 0.10);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.ac-dialog-title {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.ac-dialog-message {
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin-top: 8px;
+  line-height: 1.5;
+}
+
+.ac-dialog-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.ac-dialog-button {
+  flex: 1;
+  height: 44px;
+  border-radius: 11px;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.ac-stop-confirm-button {
+  border: none;
+  background: var(--danger);
+  color: #fff;
+  font-weight: 600;
+}
+
+.ac-stop-confirm-button:hover {
+  filter: brightness(0.95);
+}

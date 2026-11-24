@@ -1,0 +1,21 @@
+@import './angularApp/styles/ac-theme.scss';
+
+html {
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+  text-align: left;
+  font-size: 100%;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--surface, #F6F4F2);
+}
+
+app-root {
+  display: block;
+  height: 100%;
+}

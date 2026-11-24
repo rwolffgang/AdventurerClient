@@ -1,0 +1,106 @@
+<div class="ac-main-screen">
+  <div class="ac-main-layout">
+
+    <!-- Left: status + camera -->
+    <div class="ac-main-left">
+      <div class="ac-card">
+        <div class="ac-status-header">
+          <div class="ac-section-title">Printer status</div>
+          <span class="ac-status-pill" [style.background]="StatusPillBackground" [style.color]="StatusColor">
+            <span class="ac-status-dot" [style.background]="StatusColor" [class.ac-status-dot-pulse]="IsPrinting && !PrintPaused"></span>
+            {{ StatusLabel }}
+          </span>
+        </div>
+
+        <div class="ac-info-grid">
+          <span class="ac-info-label">Mode</span><span class="ac-info-value">{{ ModeLabel }}</span>
+          <span class="ac-info-label">Model</span><span class="ac-info-value">{{ PrinterName || '—' }}</span>
+          <span class="ac-info-label">Firmware</span><span class="ac-info-value ac-mono">{{ FirmwareVersion || '—' }}</span>
+          <span class="ac-info-label">Serial</span><span class="ac-info-value ac-mono">{{ SerialNumber || '—' }}</span>
+          <span class="ac-info-label">Build size</span><span class="ac-info-value ac-mono">{{ BuildVolumeLabel || '—' }}</span>
+        </div>
+
+        <div class="ac-temperature-section">
+          <div class="ac-label">Temperature</div>
+
+          <div class="ac-temperature-row">
+            <div class="ac-temperature-header">
+              <span>Nozzle</span>
+              <span class="ac-mono ac-temperature-value">
+                {{ Tool0Temp }}°C
+                <span *ngIf="ShowTargetTemperatures" class="ac-temperature-target"> / {{ Tool0TargetTemp }}°C</span>
+              </span>
+            </div>
+            <div class="ac-progress-track">
+              <div class="ac-progress-fill" [style.width.%]="NozzlePercent"></div>
+            </div>
+          </div>
+
+          <div class="ac-temperature-row">
+            <div class="ac-temperature-header">
+              <span>Bed</span>
+              <span class="ac-mono ac-temperature-value">
+                {{ BuildPlateTemp }}°C
+                <span *ngIf="ShowTargetTemperatures" class="ac-temperature-target"> / {{ BuildPlateTargetTemp }}°C</span>
+              </span>
+            </div>
+            <div class="ac-progress-track">
+              <div class="ac-progress-fill" [style.width.%]="BedPercent"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ac-printer-controls">
+          <div *ngIf="ControlsActive" class="ac-print-progress-row">
+            <div class="ac-progress-ring" [style.background]="ProgressRingBackground">
+              <div class="ac-progress-ring-inner">
+                <div class="ac-mono ac-progress-ring-value">{{ PrintPercentLabel }}</div>
+                <div class="ac-progress-ring-caption">done</div>
+              </div>
+            </div>
+            <div class="ac-print-details">
+              <div class="ac-label">Now printing</div>
+              <div class="ac-mono ac-print-file">{{ CurrentFileName || 'Current print job' }}</div>
+              <div class="ac-print-note">{{ PrintNote }}</div>
+            </div>
+          </div>
+
+          <div class="ac-control-buttons">
+            <button
+              class="ac-button ac-button-secondary ac-control-button"
+              [class.ac-control-button-active]="LightOn"
+              type="button"
+              [disabled]="LightTogglePending"
+              (click)="ToggleLight()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 18h6"></path>
+                <path d="M10 22h4"></path>
+                <path d="M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"></path>
+              </svg>
+              {{ LightOn ? 'Light off' : 'Light on' }}
+            </button>
+            <button *ngIf="IsPrinting && !PrintPaused" class="ac-button ac-button-secondary ac-control-button" type="button" (click)="PausePrinting()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"></rect><rect x="14" y="5" width="4" height="14" rx="1"></rect></svg>
+              Pause
+            </button>
+            <button *ngIf="PrintPaused" class="ac-button ac-button-primary ac-control-button" type="button" (click)="ResumePrinting()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><polygon points="6,4 20,12 6,20"></polygon></svg>
+              Resume
+            </button>
+            <button *ngIf="ControlsActive" class="ac-button ac-button-danger ac-control-button" type="button" (click)="OpenStopPrintingDialog()">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="5" width="14" height="14" rx="2"></rect></svg>
+              Stop
+            </button>
+          </div>
+        </div>
+      </div>
+      <app-camera *ngIf="UiState.showCamera"></app-camera>
+    </div>
+
+    <!-- Right: print -->
+    <div class="ac-main-right">
+      <app-print></app-print>
+    </div>
+
+  </div>
+</div>

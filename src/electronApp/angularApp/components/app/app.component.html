@@ -1,0 +1,103 @@
+<div class="ac-app">
+
+  <header class="ac-header">
+    <div class="ac-header-left">
+      <div class="ac-brand">
+        <img class="ac-brand-icon" src="assets/icon.png" alt="">
+        <span class="ac-brand-name">Adventurer Client</span>
+      </div>
+    </div>
+    <div class="ac-header-right">
+      <div *ngIf="!IsConnected" class="ac-connection-badge ac-connection-badge-muted">
+        <span class="ac-status-dot"></span>Not connected
+      </div>
+      <ng-container *ngIf="IsConnected">
+        <div class="ac-connection-badge ac-connection-badge-connected">
+          <span class="ac-status-dot"></span>
+          {{ PrinterModel || 'Printer' }}
+          <span class="ac-mono ac-ip">&nbsp;· {{ ConnectedAddress }}</span>
+        </div>
+        <button class="ac-icon-button ac-button" type="button" title="Settings" (click)="OpenSettings()">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+            <line x1="4" y1="8" x2="20" y2="8"></line>
+            <line x1="4" y1="16" x2="20" y2="16"></line>
+            <circle cx="9" cy="8" r="2.3" fill="#fff"></circle>
+            <circle cx="15" cy="16" r="2.3" fill="#fff"></circle>
+          </svg>
+        </button>
+        <button class="ac-button ac-button-secondary ac-disconnect-button" type="button" (click)="Disconnect()">Disconnect</button>
+      </ng-container>
+    </div>
+  </header>
+
+  <div *ngIf="ShowBanner" class="ac-banner">
+    <span *ngIf="TransferState.phase === 'saving' || TransferState.phase === 'printing'" class="ac-spinner"></span>
+    <div class="ac-banner-body">
+      <div class="ac-banner-title">{{ BannerTitle }}</div>
+      <div *ngIf="BannerHasBar" class="ac-progress-track ac-banner-progress">
+        <div class="ac-progress-fill" [style.width.%]="BannerPercent"></div>
+      </div>
+    </div>
+    <div class="ac-mono ac-banner-meta">{{ BannerMeta }}</div>
+  </div>
+
+  <main class="ac-body">
+    <app-connect-form *ngIf="!IsConnected"></app-connect-form>
+    <app-status *ngIf="IsConnected"></app-status>
+  </main>
+
+  <div *ngIf="UiState.settingsOpen" class="ac-overlay ac-settings-overlay" (click)="CloseSettings()">
+    <div class="ac-settings-panel" (click)="$event.stopPropagation()">
+      <div class="ac-settings-header">
+        <div class="ac-settings-title">Settings</div>
+        <button class="ac-icon-button ac-button ac-close-button" type="button" (click)="CloseSettings()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="ac-settings-content">
+        <app-debug></app-debug>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="UiState.connectionDialogOpen" class="ac-overlay ac-dialog-overlay">
+    <div class="ac-dialog">
+      <div class="ac-dialog-icon ac-dialog-icon-danger">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#C0473A" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18.4 5.6a9 9 0 0 1 0 12.8"></path>
+          <path d="M5.6 18.4a9 9 0 0 1 0-12.8"></path>
+          <line x1="3" y1="21" x2="21" y2="3"></line>
+        </svg>
+      </div>
+      <div class="ac-dialog-title">Connection lost</div>
+      <div class="ac-dialog-message">The connection to the printer was lost. Try reconnecting, or return to the connect screen.</div>
+      <div class="ac-dialog-actions">
+        <button class="ac-button ac-button-secondary ac-dialog-button" type="button" [disabled]="UiState.isReconnecting" (click)="CancelConnectionDialog()">Cancel</button>
+        <button class="ac-button ac-button-primary ac-dialog-button" type="button" [disabled]="UiState.isReconnecting" (click)="Reconnect()">
+          <span *ngIf="UiState.isReconnecting" class="ac-spinner"></span>
+          Reconnect
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="UiState.stopDialogOpen" class="ac-overlay ac-dialog-overlay">
+    <div class="ac-dialog">
+      <div class="ac-dialog-icon ac-dialog-icon-danger">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="#C0473A">
+          <rect x="5" y="5" width="14" height="14" rx="2"></rect>
+        </svg>
+      </div>
+      <div class="ac-dialog-title">Stop printing?</div>
+      <div class="ac-dialog-message">This will halt the current print. The job can't be resumed once stopped.</div>
+      <div class="ac-dialog-actions">
+        <button class="ac-button ac-button-secondary ac-dialog-button" type="button" (click)="CloseStopDialog()">Cancel</button>
+        <button class="ac-button ac-dialog-button ac-stop-confirm-button" type="button" (click)="ConfirmStopPrinting()">Stop printing</button>
+      </div>
+    </div>
+  </div>
+
+</div>

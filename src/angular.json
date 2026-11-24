@@ -1,0 +1,78 @@
+{
+  "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+  "version": 1,
+  "newProjectRoot": "projects",
+  "projects": {
+    "adventurerclient": {
+      "projectType": "application",
+      "schematics": {},
+      "root": "",
+      "sourceRoot": "electronApp",
+      "prefix": "app",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:browser",
+          "options": {
+            "outputPath": "dist",
+            "index": "electronApp/index.html",
+            "main": "electronApp/angularMain.ts",
+            "polyfills": "electronApp/polyfills.ts",
+            "tsConfig": "tsconfig.json",
+            "aot": true,
+            "assets": [
+              "electronApp/assets"
+            ],
+            "styles": [
+              "electronApp/styles.scss"
+            ],
+            "scripts": []
+          },
+          "configurations": {
+            "production": {
+              "fileReplacements": [
+                {
+                  "replace": "electronApp/environments/environment.ts",
+                  "with": "electronApp/environments/environment.prod.ts"
+                }
+              ],
+              "optimization": true,
+              "outputHashing": "all",
+              "sourceMap": false,
+              "extractCss": true,
+              "namedChunks": false,
+              "extractLicenses": true,
+              "vendorChunk": false,
+              "buildOptimizer": true,
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "2mb",
+                  "maximumError": "5mb"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "6kb",
+                  "maximumError": "10kb"
+                }
+              ]
+            }
+          }
+        },
+        "serve": {
+          "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "browserTarget": "adventurerclient:build",
+            "port": 4200,
+            "host": "localhost"
+          },
+          "configurations": {
+            "production": {
+              "browserTarget": "adventurerclient:build:production"
+            }
+          }
+        }
+      }
+    }
+  },
+  "defaultProject": "adventurerclient"
+}
