@@ -17,7 +17,9 @@
       "target": [
         "dmg"
       ],
-      "category": "public.app-category.utilities"
+      "category": "public.app-category.utilities",
+      "identity": "-",
+      "hardenedRuntime": false
     },
     "directories": {
       "output": "distPackages"
@@ -49,6 +51,9 @@
       "target": [
         "nsis"
       ]
+    },
+    "nsis": {
+      "artifactName": "AdventurerClient-${os}.${ext}"
     }
   },
   "scripts": {
@@ -87,7 +92,7 @@
     "concurrently": "^8.2.2",
     "cross-env": "^10.1.0",
     "electron": "^12.0.5",
-    "electron-builder": "^22.10.5",
+    "electron-builder": "^26.18.0",
     "electron-reload": "^1.5.0",
     "typescript": "4.2.3",
     "wait-on": "^7.2.0"

@@ -45,15 +45,30 @@ Files that are already `.gx` (for example from FlashPrint) are uploaded unchange
 
 ## Installing
 
-There are no prebuilt downloads yet. Build the app from source as described below.
+Download the latest version from the [Releases page](https://github.com/rwolffgang/AdventurerClient/releases/latest):
 
-### macOS: "cannot be opened because the developer cannot be verified"
+- **Windows:** `AdventurerClient-win.exe` (installer for 32- and 64-bit Windows)
+- **macOS, Apple silicon (M1 and later):** `AdventurerClient-macarm64.dmg`
+- **macOS, Intel:** `AdventurerClient-macx64.dmg`
 
-The app isn't signed or notarized. On first launch, right-click **Adventurer Client** in Finder, choose **Open**, then click **Open** in the dialog. After that it opens normally.
+On macOS, open the `.dmg` and drag **Adventurer Client** into **Applications**.
+
+### Windows: "Windows protected your PC"
+
+The installer isn't code-signed, so SmartScreen may warn on first run. Click **More info**, then **Run anyway**.
+
+### macOS: "Adventurer Client" can't be opened / "Apple could not verify"
+
+The app isn't signed with an Apple Developer ID or notarized, so macOS blocks the first launch:
+
+- **macOS 15 Sequoia and later:** Try to open the app, close the warning, then go to **System Settings → Privacy & Security**, scroll down and click **Open Anyway** next to the message about Adventurer Client. Confirm with **Open Anyway** again.
+- **Older macOS:** Right-click **Adventurer Client** in Finder, choose **Open**, then click **Open** in the dialog.
+
+After that it opens normally.
 
 ## Building from source
 
-You need [Node.js](https://nodejs.org) 20 or newer.
+You need [Node.js](https://nodejs.org) 22.12 or newer.
 
 ```bash
 cd src
@@ -70,6 +85,17 @@ npm run distlinux   # AppImage and .deb
 ```
 
 For development with live reload, run `npm run electron:dev`.
+
+## Releasing
+
+Pushing a version tag builds the Windows installer and both macOS disk images on GitHub Actions and attaches them to a GitHub release for that tag. The tag sets the app version, so `package.json` doesn't need to be bumped first:
+
+```bash
+git tag v1.1.0
+git push origin v1.1.0
+```
+
+To build the installers without publishing a release, run the **Release** workflow by hand from the Actions tab. The files are then attached to the workflow run.
 
 ## Fake printer
 
