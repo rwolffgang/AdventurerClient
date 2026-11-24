@@ -16,15 +16,7 @@ export class ErrorLogger {
     private static lastNonFatalErrorKey: string | null = null;
     private static lastNonFatalErrorTime = 0;
     private static suppressedNonFatalErrorCount = 0;
-    private static verboseTraceEnabled = false;
     private static cameraConnectionErrorLogged = false;
-
-    /**
-     * Enables routine trace messages such as status polling diagnostics.
-     */
-    public static SetVerboseTraceEnabled(enabled: boolean): void {
-        ErrorLogger.verboseTraceEnabled = enabled;
-    }
 
     /**
      * Log an error that the app recovered from.
@@ -70,14 +62,11 @@ export class ErrorLogger {
     }
 
     /**
-     * Logs a trace message when verbose tracing is enabled.
+     * Logs a diagnostic message, such as the steps of a file upload. Routine
+     * status polling is never traced, so this stays small.
      * @param message The message.
      */
     public static Trace(message: string): void {
-        if (!ErrorLogger.verboseTraceEnabled) {
-            return;
-        }
-
         const formattedMessage =
             'ErrorLogger::Trace() - '
             + message;

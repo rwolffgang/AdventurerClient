@@ -43,8 +43,14 @@ export class StatusComponent implements OnInit, OnDestroy {
   public LightOn = false;
   public LightTogglePending = false;
 
-  private ignorePrinterLightStatus = false;
+  /**
+   * After the light is toggled here, ignore the printer's light flag until
+   * this time, so a status reply that was already on its way doesn't flip
+   * the button back. After that, changes made on the printer show up again.
+   */
+  private ignorePrinterLightStatusUntil = 0;
   private refreshInterval: NodeJS.Timeout;
+  private statusRefreshInFlight = false;
   private transferState: TransferState;
 
   constructor(
@@ -102,7 +108,7 @@ export class StatusComponent implements OnInit, OnDestroy {
     try {
       await this.printerService.SetLightAsync(nextState);
       this.LightOn = nextState;
-      this.ignorePrinterLightStatus = true;
+      this.ignorePrinterLightStatusUntil = Date.now() + 5000;
     } catch (error) {
       ErrorLogger.NonFatalError(error);
     } finally {
@@ -111,10 +117,11 @@ export class StatusComponent implements OnInit, OnDestroy {
   }
 
   private async UpdateStatusText(): Promise<void> {
-    if (this.printerService.IsPollingSuspended()) {
+    if (this.printerService.IsPollingSuspended() || this.statusRefreshInFlight) {
       return;
     }
 
+    this.statusRefreshInFlight = true;
     try {
       const status = await this.printerService.GetPrinterStatusAsync();
       if (this.printerService.IsPollingSuspended()) {
@@ -124,7 +131,7 @@ export class StatusComponent implements OnInit, OnDestroy {
       this.PrinterStatus = status.MachineStatus;
       this.MoveMode = status.MoveMode;
 
-      if (!this.ignorePrinterLightStatus && status.LightOn != null) {
+      if (Date.now() >= this.ignorePrinterLightStatusUntil && status.LightOn != null) {
         this.LightOn = status.LightOn;
       }
 
@@ -158,6 +165,8 @@ export class StatusComponent implements OnInit, OnDestroy {
       if (!this.printerService.IsPollingSuspended()) {
         ErrorLogger.NonFatalError(error);
       }
+    } finally {
+      this.statusRefreshInFlight = false;
     }
   }
 

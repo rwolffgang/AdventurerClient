@@ -90,6 +90,12 @@ export class PrinterService implements IPrinterService {
 	private activePollingOperations = 0;
 
 	/**
+	 * True while a heartbeat poll is waiting for the printer, so a slow reply
+	 * doesn't pile up further heartbeats behind it.
+	 */
+	private heartbeatInFlight = false;
+
+	/**
 	 * Current upload/print progress for the header banner.
 	 */
 	private transferState: TransferState = {
@@ -140,24 +146,35 @@ export class PrinterService implements IPrinterService {
 	 * Starts the keep-alive heartbeat poll.
 	 */
 	private StartHeartbeat(): void {
-		if (this.heartbeatInterval != null) {
+		if (this.heartbeatInterval != null || !this.isConnected) {
 			return;
 		}
 
 		this.heartbeatInterval = setInterval(async () => {
-			if (this.pollingSuspended) {
+			if (this.pollingSuspended || this.heartbeatInFlight) {
 				return;
 			}
+
+			const printer = this.printer;
+			this.heartbeatInFlight = true;
 			try {
-				await this.RunPollingOperation(() => this.printer.GetPrinterStatusAsync());
+				await this.RunPollingOperation(() => printer.GetPrinterStatusAsync());
 			}
 			catch (e) {
-				this.ConnectionError.Invoke(e);
-				ErrorLogger.NonFatalError(e);
+				// Ignore failures from a connection that has since been replaced.
+				if (printer !== this.printer || this.pollingSuspended) {
+					return;
+				}
+
 				if (this.heartbeatInterval) {
 					clearInterval(this.heartbeatInterval);
 					this.heartbeatInterval = null;
 				}
+				ErrorLogger.NonFatalError(e);
+				this.ConnectionError.Invoke(e);
+			}
+			finally {
+				this.heartbeatInFlight = false;
 			}
 		}, 5000);
 	}
@@ -404,15 +421,37 @@ export class PrinterService implements IPrinterService {
 		catch (error) {
 			ErrorLogger.NonFatalError(error);
 			const reason = error instanceof Error ? error.message : String(error);
+
+			await this.ResetConnectionAfterFailedTransferAsync();
+
 			this.UpdateTransferState({
 				active: true,
+				progress: 0,
 				phase: 'error',
+				fileName: displayName,
 				errorMessage: 'Failed to send file to printer. ' + reason,
 			});
 			throw error;
 		}
 		finally {
 			this.ResumePolling();
+		}
+	}
+
+	/**
+	 * After a failed upload the printer may still be counting raw file bytes
+	 * from the M28 or finishing the save, so anything sent on that connection
+	 * could end up inside the file. Start again on a fresh connection.
+	 */
+	private async ResetConnectionAfterFailedTransferAsync(): Promise<void> {
+		ErrorLogger.Trace('PrinterService::UploadAndPrintAsync - Reconnecting after failed transfer');
+
+		try {
+			await this.ReconnectAsync();
+		}
+		catch (reconnectError) {
+			ErrorLogger.NonFatalError(reconnectError);
+			this.ConnectionError.Invoke(reconnectError);
 		}
 	}
 

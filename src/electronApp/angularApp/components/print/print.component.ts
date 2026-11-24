@@ -35,6 +35,7 @@ export class PrintComponent implements OnInit, OnDestroy {
 
   private doneDismissed = false;
   private refreshInterval: NodeJS.Timeout;
+  private buildStateRefreshInFlight = false;
 
   @ViewChild('fileInput') private fileInput: ElementRef<HTMLInputElement>;
 
@@ -72,6 +73,11 @@ export class PrintComponent implements OnInit, OnDestroy {
     const file = event?.[0];
     const path = file?.path;
 
+    // Clear the picker so choosing the same file again still fires a change.
+    if (this.fileInput?.nativeElement) {
+      this.fileInput.nativeElement.value = '';
+    }
+
     if (path && !IsTransferBusy(this.TransferState) && !this.PrinterIsBuilding) {
       this.doneDismissed = false;
       this.ErrorMessage = null;
@@ -89,6 +95,10 @@ export class PrintComponent implements OnInit, OnDestroy {
   }
 
   public reprintFile(filePath: string): void {
+    if (this.PrinterIsBuilding) {
+      return;
+    }
+
     if (!this.PrintFileExists(filePath) || IsTransferBusy(this.TransferState)) {
       this.LoadRecentPrints();
       return;
@@ -145,10 +155,11 @@ export class PrintComponent implements OnInit, OnDestroy {
   }
 
   private async UpdatePrinterBuildState(): Promise<void> {
-    if (this.printerService.IsPollingSuspended()) {
+    if (this.printerService.IsPollingSuspended() || this.buildStateRefreshInFlight) {
       return;
     }
 
+    this.buildStateRefreshInFlight = true;
     try {
       const status = await this.printerService.GetPrinterStatusAsync();
       this.PrinterIsBuilding = status.MachineStatus === 'BUILDING_FROM_SD';
@@ -156,6 +167,8 @@ export class PrintComponent implements OnInit, OnDestroy {
       this.changeDetectorRef.markForCheck();
     } catch {
       // Ignore polling errors here; the shell handles connection failures.
+    } finally {
+      this.buildStateRefreshInFlight = false;
     }
   }
 

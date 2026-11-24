@@ -21,7 +21,8 @@ export class EventDispatcher<E> {
      * @param eventData The event data.
      */
     public Invoke(eventData: E): void {
-        this.handlers.forEach(h => {
+        // Copy first so a handler can register or unregister safely.
+        [...this.handlers].forEach(h => {
             h.Handler.bind(h.Context)(eventData);
         });
     }
@@ -53,9 +54,10 @@ export class EventDispatcher<E> {
      * @param handler The handler.
      */
     public Unregister(handler: Handler<E>): void {
-        const foundHandler = this.handlers.find(h => h.Handler == handler);
-        const index = this.handlers.indexOf(foundHandler);
-        this.handlers.splice(index, 1);
+        const index = this.handlers.findIndex(h => h.Handler === handler);
+        if (index !== -1) {
+            this.handlers.splice(index, 1);
+        }
     }
 }
 

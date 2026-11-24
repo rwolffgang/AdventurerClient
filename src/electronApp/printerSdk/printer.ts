@@ -1,7 +1,7 @@
 const net = window.require('net');
 const fs = window.require('fs');
 
-import { PrinterResponseReader } from './printerResponseReader';
+import { PrinterResponseReader, PrinterTimeoutError } from './printerResponseReader';
 import { GcodeToGx } from './gcodeToGx';
 import { CuraToFlashforge } from './curaToFlashforge';
 import { PrinterCamera } from './printerCamera'
@@ -18,11 +18,6 @@ export class Printer {
      * The address of the printer.
      */
     readonly printerAddress: string;
-
-    /**
-     * Value indicating if the class has been disposed
-     */
-    private isDisposed: false;
 
     /**
      * The socket connection to the printer.
@@ -80,6 +75,30 @@ export class Printer {
      * letting us fail fast instead of hanging at "100%".
      */
     private readonly transferStallTimeoutMilliseconds = 30000;
+
+    /**
+     * How long to wait for the printer to accept the TCP connection. Without
+     * this a wrong address keeps "Connecting…" up for the OS timeout (about a
+     * minute on macOS).
+     */
+    private readonly connectTimeoutMilliseconds = 8000;
+
+    /**
+     * How long to wait for M601 (take control) while connecting.
+     */
+    private readonly takeControlTimeoutMilliseconds = 15000;
+
+    /**
+     * How long to wait for a status, info or temperature query. A healthy
+     * printer answers within a second; a timeout here means the connection is
+     * dead even if the socket was never closed (Wi-Fi drop, power cut).
+     */
+    private readonly statusTimeoutMilliseconds = 10000;
+
+    /**
+     * Default time to wait for a command acknowledgement.
+     */
+    private readonly commandTimeoutMilliseconds = 60000;
 
     /**
      * Initializes a new instance of the Printer class.
@@ -147,13 +166,21 @@ export class Printer {
     async ConnectAsync(): Promise<void> {
         return new Promise((a, r) => {
             this.printerConnection = new net.Socket();
+
+            const connectTimer = setTimeout(() => {
+                this.printerConnection.destroy(new Error(
+                    'Could not reach the printer at ' + this.printerAddress + ' (timed out).'));
+            }, this.connectTimeoutMilliseconds);
+
             this.printerConnection.on('error', (ex: any) => {
-                this.isConnected = false;
+                clearTimeout(connectTimer);
+                this.HandleConnectionLost(ex instanceof Error ? ex : new Error(String(ex)));
                 r(ex);
             });
 
             this.printerConnection.on('close', () => {
-                this.isConnected = false;
+                clearTimeout(connectTimer);
+                this.HandleConnectionLost(new Error('The connection to the printer was closed.'));
             });
 
             this.printerConnection.on('data', data => {
@@ -164,6 +191,8 @@ export class Printer {
             });
 
             this.printerConnection.connect(8899, this.printerAddress, async () => {
+                clearTimeout(connectTimer);
+
                 try {
                     this.printerConnection.setNoDelay(true);
                     this.responseReader = new PrinterResponseReader(this.printerConnection);
@@ -173,7 +202,10 @@ export class Printer {
                     await this.GetPrinterStatusAsync();
                     a();
                 } catch (ex) {
+                    // Don't leave a half-open socket behind: it could keep
+                    // holding printer control and block the next attempt.
                     this.isConnected = false;
+                    this.printerConnection.destroy();
                     r(ex);
                 }
             });
@@ -181,11 +213,21 @@ export class Printer {
     }
 
     /**
+     * Marks the connection as gone and fails every command still waiting for
+     * a reply, so callers see the error instead of waiting forever.
+     */
+    private HandleConnectionLost(error: Error): void {
+        this.isConnected = false;
+        this.hasPrinterControl = false;
+        this.responseReader?.RejectAll(error);
+    }
+
+    /**
      * Disconnect from the printer.
      */
     Disconnect(): void {
         this.hasPrinterControl = false;
-        this.printerConnection.destroy();
+        this.printerConnection?.destroy();
         this.PrinterCamera.DisconnectCamera();
     }
 
@@ -195,10 +237,7 @@ export class Printer {
     StopPrintingAsync(): Promise<void> {
         return this.RunExclusive(async () => {
             this.ValidatePrinterReady();
-            const message = '~' + MachineCommands.StopPrinting;
-            this.SendToPrinter(message);
-
-            return this.WaitForPrinterAck(MachineCommands.StopPrinting);
+            await this.SendCommandAndWaitForAck('~' + MachineCommands.StopPrinting, MachineCommands.StopPrinting);
         });
     }
 
@@ -208,10 +247,7 @@ export class Printer {
     PausePrintingAsync(): Promise<void> {
         return this.RunExclusive(async () => {
             this.ValidatePrinterReady();
-            const message = '~' + MachineCommands.PausePrinting;
-            this.SendToPrinter(message);
-
-            return this.WaitForPrinterAck(MachineCommands.PausePrinting);
+            await this.SendCommandAndWaitForAck('~' + MachineCommands.PausePrinting, MachineCommands.PausePrinting);
         });
     }
 
@@ -221,10 +257,7 @@ export class Printer {
     ResumePrintingAsync(): Promise<void> {
         return this.RunExclusive(async () => {
             this.ValidatePrinterReady();
-            const message = '~' + MachineCommands.ResumePrinting;
-            this.SendToPrinter(message);
-
-            return this.WaitForPrinterAck(MachineCommands.ResumePrinting);
+            await this.SendCommandAndWaitForAck('~' + MachineCommands.ResumePrinting, MachineCommands.ResumePrinting);
         });
     }
 
@@ -234,10 +267,7 @@ export class Printer {
     GetPrinterStatusAsync(): Promise<PrinterStatus> {
         return this.RunExclusiveWithSuppressedProtocolLogging(async () => {
             this.ValidatePrinterReady();
-            const message = '~' + MachineCommands.GetEndstopStatus;
-            this.SendToPrinter(message);
-
-            return this.responseReader.GerPrinterResponse<PrinterStatus>(MachineCommands.GetEndstopStatus);
+            return this.QueryStatusAsync<PrinterStatus>(MachineCommands.GetEndstopStatus);
         });
     }
 
@@ -247,10 +277,7 @@ export class Printer {
     GetFirmwareVersionAsync(): Promise<FirmwareVersionResponse> {
         return this.RunExclusiveWithSuppressedProtocolLogging(async () => {
             this.ValidatePrinterReady();
-            const message = '~' + MachineCommands.GetFirmwareVersion;
-            this.SendToPrinter(message);
-
-            return this.responseReader.GerPrinterResponse<FirmwareVersionResponse>(MachineCommands.GetFirmwareVersion);
+            return this.QueryStatusAsync<FirmwareVersionResponse>(MachineCommands.GetFirmwareVersion);
         });
     }
 
@@ -260,10 +287,7 @@ export class Printer {
     GetTemperatureAsync(): Promise<TemperatureResponse> {
         return this.RunExclusiveWithSuppressedProtocolLogging(async () => {
             this.ValidatePrinterReady();
-            const message = '~' + MachineCommands.GetTemperature;
-            this.SendToPrinter(message);
-
-            return this.responseReader.GerPrinterResponse<TemperatureResponse>(MachineCommands.GetTemperature);
+            return this.QueryStatusAsync<TemperatureResponse>(MachineCommands.GetTemperature);
         });
     }
 
@@ -275,17 +299,10 @@ export class Printer {
         return this.RunExclusive(async () => {
             this.ValidatePrinterReady();
             const commandId = Printer.ExtractCommandId(command);
-            const responsePromise = this.responseReader.GerPrinterResponse<IPrinterResponse>(commandId);
-            this.SendToPrinter('~' + command);
-
-            const response = await Promise.race([
-                responsePromise,
-                new Promise<never>((_, reject) => {
-                    setTimeout(
-                        () => reject(new Error('Timed out waiting for ' + commandId + ' response')),
-                        60000);
-                })
-            ]);
+            const response = await this.SendAndWaitForResponseAsync<IPrinterResponse>(
+                '~' + command,
+                commandId,
+                this.commandTimeoutMilliseconds);
 
             return Printer.FormatDebugCommandResponse(response);
         });
@@ -360,10 +377,7 @@ export class Printer {
 
         return this.RunExclusive(async () => {
             this.ValidatePrinterReady();
-            const message = '~' + MachineCommands.SetLight + parameters;
-            this.SendToPrinter(message);
-
-            return this.WaitForPrinterAck(MachineCommands.SetLight);
+            await this.SendCommandAndWaitForAck('~' + MachineCommands.SetLight + parameters, MachineCommands.SetLight);
         });
     }
 
@@ -384,19 +398,10 @@ export class Printer {
                 await this.Delay(postSaveDelayMilliseconds);
             }
 
-            const message = '~' + MachineCommands.PrintFileFromSd + ' 0:/user/' + fileName;
-            const responsePromise = this.responseReader.GerPrinterResponse<TextCommandResponse>(
-                MachineCommands.PrintFileFromSd);
-            this.SendToPrinter(message);
-
-            const response = await Promise.race([
-                responsePromise,
-                new Promise<never>((_, reject) => {
-                    setTimeout(
-                        () => reject(new Error('Timed out waiting for M23 acknowledgement')),
-                        120000);
-                })
-            ]);
+            const response = await this.SendAndWaitForResponseAsync<TextCommandResponse>(
+                '~' + MachineCommands.PrintFileFromSd + ' 0:/user/' + fileName,
+                MachineCommands.PrintFileFromSd,
+                120000);
 
             this.ValidatePrintFileOpened(response, fileName);
         });
@@ -546,27 +551,51 @@ export class Printer {
     private async SendTakeControlCommandAsync(): Promise<void> {
         await this.SendCommandAndWaitForAck(
             '~' + MachineCommands.TakeControl + ' S1',
-            MachineCommands.TakeControl);
+            MachineCommands.TakeControl,
+            this.takeControlTimeoutMilliseconds);
     }
 
     /**
-     * Registers for a response before sending so a fast printer reply cannot
-     * arrive before the pending-call listener is attached.
+     * Sends a status, info or temperature query. The printer answers these
+     * within a second, so if it doesn't answer in time the connection is dead
+     * even though the socket is still open (Wi-Fi drop, power cut). Close it,
+     * so queued commands fail at once and the app can offer to reconnect.
+     */
+    private async QueryStatusAsync<T extends IPrinterResponse>(commandId: string): Promise<T> {
+        try {
+            return await this.SendAndWaitForResponseAsync<T>('~' + commandId, commandId, this.statusTimeoutMilliseconds);
+        } catch (error) {
+            if (error instanceof PrinterTimeoutError && this.isConnected) {
+                ErrorLogger.Trace('No answer to ' + commandId + ', closing the connection');
+                this.HandleConnectionLost(error);
+                this.printerConnection.destroy();
+            }
+
+            throw error;
+        }
+    }
+
+    /**
+     * Sends a command and waits for its reply. Registers for the reply before
+     * sending so a fast printer reply cannot arrive before anyone is listening.
+     */
+    private SendAndWaitForResponseAsync<T extends IPrinterResponse>(
+        command: string,
+        commandId: string,
+        timeoutMilliseconds: number): Promise<T> {
+        const responsePromise = this.responseReader.GetPrinterResponse<T>(commandId, timeoutMilliseconds);
+        this.SendToPrinter(command);
+        return responsePromise;
+    }
+
+    /**
+     * Sends a command and waits for the printer to acknowledge it.
      */
     private async SendCommandAndWaitForAck(
         command: string,
         commandId: string,
-        timeoutMilliseconds: number = 60000): Promise<void> {
-        const responsePromise = this.responseReader.GerPrinterResponse<IPrinterResponse>(commandId);
-        this.SendToPrinter(command);
-        await Promise.race([
-            responsePromise,
-            new Promise<void>((_, reject) => {
-                setTimeout(
-                    () => reject(new Error('Timed out waiting for ' + commandId + ' acknowledgement')),
-                    timeoutMilliseconds);
-            })
-        ]);
+        timeoutMilliseconds: number = this.commandTimeoutMilliseconds): Promise<void> {
+        await this.SendAndWaitForResponseAsync<IPrinterResponse>(command, commandId, timeoutMilliseconds);
     }
 
     private Delay(milliseconds: number): Promise<void> {
@@ -657,26 +686,9 @@ export class Printer {
     }
 
     /**
-     * Waits fot the printer to acknowledge that a command send to it completed.
-     */
-    private async WaitForPrinterAck(commandId: string, timeoutMilliseconds: number = 60000): Promise<void> {
-        await Promise.race([
-            this.responseReader.GerPrinterResponse<IPrinterResponse>(commandId),
-            new Promise<void>((_, reject) => {
-                setTimeout(
-                    () => reject(new Error('Timed out waiting for ' + commandId + ' acknowledgement')),
-                    timeoutMilliseconds);
-            })
-        ]);
-    }
-
-    /**
      * Validates that we are currently in a valid state to communicate with the printer.
      */
     private ValidatePrinterReady(): void {
-        if (this.isDisposed) {
-            throw new Error('Printer is no longer connected');
-        }
         if (!this.isConnected) {
             throw new Error(('Not connected to printer, or connection lost'));
         }

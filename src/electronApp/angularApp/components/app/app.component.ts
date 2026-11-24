@@ -143,7 +143,7 @@ export class AppComponent implements OnInit, OnDestroy {
    * Returns to the connect screen from the connection dialog.
    */
   public CancelConnectionDialog(): void {
-    this.UiState.CloseConnectionDialog();
+    this.Disconnect();
   }
 
   /**

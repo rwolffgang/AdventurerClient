@@ -1,4 +1,15 @@
 import { MachineCommands } from './machineCommands';
+import { ErrorLogger } from '../core/errorLogger';
+
+/**
+ * Raised when the printer doesn't answer a command in time.
+ */
+export class PrinterTimeoutError extends Error {
+    constructor(commandId: string) {
+        super('Timed out waiting for the printer to answer ' + commandId);
+        this.name = 'PrinterTimeoutError';
+    }
+}
 import { IPrinterResponse, PrinterStatus, TemperatureResponse, FirmwareVersionResponse, TextCommandResponse, PendingCall, PendingResponse } from './entities';
 
 /**
@@ -165,6 +176,7 @@ export class PrinterResponseReader
 
         return null;
     }
+
     private TryDrainPendingCalls(): void {
         for (let i = 0; i < this.responseBuffer.length; ++i){
             for (let a = 0; a < this.pendingCalls.length; ++a){
@@ -189,18 +201,71 @@ export class PrinterResponseReader
     }
 
     /**
-     * Gets the response for a command from the printer.
+     * Waits for the printer's response to a command. Call it before sending the
+     * command so a fast reply can't arrive before anyone is listening.
+     *
+     * A reply already buffered for the same command belongs to an earlier call
+     * that gave up waiting, so it is thrown away instead of being handed to this
+     * one. When the timeout expires the call is removed from the queue, so a late
+     * reply can't be matched to it either.
+     * @param commandId The command to wait for, for example M119.
+     * @param timeoutMilliseconds How long to wait before failing.
      */
-    public GerPrinterResponse<T extends IPrinterResponse>(commandId: string): Promise<T>
-    {
-        const promise = new Promise<T>((a, r) => {
-            const pendingCal = new PendingCall(commandId, a, r);
-            this.pendingCalls.push(pendingCal);
+    public GetPrinterResponse<T extends IPrinterResponse>(commandId: string, timeoutMilliseconds: number): Promise<T> {
+        this.DiscardStaleResponses(commandId);
 
+        return new Promise<T>((accept, reject) => {
+            let timer: ReturnType<typeof setTimeout>;
+
+            const pendingCall = new PendingCall<T>(
+                commandId,
+                (response: T) => {
+                    clearTimeout(timer);
+                    accept(response);
+                },
+                (error: Error) => {
+                    clearTimeout(timer);
+                    reject(error);
+                });
+
+            timer = setTimeout(() => {
+                const index = this.pendingCalls.indexOf(pendingCall);
+                if (index !== -1) {
+                    this.pendingCalls.splice(index, 1);
+                }
+
+                reject(new PrinterTimeoutError(commandId));
+            }, timeoutMilliseconds);
+
+            this.pendingCalls.push(pendingCall);
             this.TryDrainPendingCalls();
         });
+    }
 
-        return promise;
+    /**
+     * Fails every call still waiting for a reply, for example because the
+     * connection to the printer was lost.
+     * @param error The error to fail the waiting calls with.
+     */
+    public RejectAll(error: Error): void {
+        const pendingCalls = this.pendingCalls.splice(0);
+        this.responseBuffer.length = 0;
+        this.lineBuffer.length = 0;
+        this.buffer = '';
+
+        pendingCalls.forEach(pendingCall => pendingCall.Reject(error));
+    }
+
+    /**
+     * Drops buffered replies to a command that nobody is waiting for any more.
+     */
+    private DiscardStaleResponses(commandId: string): void {
+        for (let i = this.responseBuffer.length - 1; i >= 0; --i) {
+            if (this.responseBuffer[i].CommandId === commandId) {
+                ErrorLogger.Trace('Discarding a late ' + commandId + ' reply from an earlier request');
+                this.responseBuffer.splice(i, 1);
+            }
+        }
     }
 
     /**

@@ -72,6 +72,8 @@
         *ngIf="entry.exists"
         class="ac-button ac-button-secondary ac-recent-print-button"
         type="button"
+        [disabled]="PrinterIsBuilding"
+        [title]="PrinterIsBuilding ? 'Wait for the current print to finish' : ''"
         (click)="reprintFile(entry.filePath); $event.stopPropagation()">
         Print again
       </button>

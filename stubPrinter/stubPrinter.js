@@ -22,6 +22,18 @@
 
 const net = require('net');
 
+// Failure modes for testing the client, set through environment variables:
+//   STUB_GO_SILENT_AFTER_MS=15000         stop answering (but keep the socket
+//                                         open) this long after a client
+//                                         connects, like a Wi-Fi drop
+//   STUB_STALL_UPLOAD_AT_BYTES=1000000    stop reading the socket once this many
+//                                         bytes of an upload have arrived, like
+//                                         a printer that can't keep up
+//   STUB_MACHINE_STATUS=BUILDING_FROM_SD  machine status reported by M119
+const goSilentAfterMs = parseInt(process.env.STUB_GO_SILENT_AFTER_MS || '', 10);
+const stallUploadAtBytes = parseInt(process.env.STUB_STALL_UPLOAD_AT_BYTES || '', 10);
+const machineStatus = process.env.STUB_MACHINE_STATUS || 'READY';
+
 const server = net.createServer((socket) => {
     // 'command' while reading text gcode lines, 'receiving' while reading the
     // raw file bytes that follow an M28.
@@ -42,7 +54,21 @@ const server = net.createServer((socket) => {
     // Whether the enclosure light is currently on.
     let lightOn = false;
 
-    const respond = (text) => socket.write(text + '\r\n');
+    const connectedAt = Date.now();
+    let silent = false;
+    let stalled = false;
+
+    console.log('Client connected');
+
+    const respond = (text) => {
+        if (!silent && Number.isFinite(goSilentAfterMs) && Date.now() - connectedAt > goSilentAfterMs) {
+            silent = true;
+            console.log('!! Going silent (STUB_GO_SILENT_AFTER_MS)');
+        }
+        if (!silent) {
+            socket.write(text + '\r\n');
+        }
+    };
 
     const beginTransfer = (size, fileName) => {
         transfer = { size: size, fileName: fileName, received: Buffer.alloc(0) };
@@ -58,6 +84,12 @@ const server = net.createServer((socket) => {
         const take = Math.min(remaining, pending.length);
         transfer.received = Buffer.concat([transfer.received, pending.subarray(0, take)]);
         pending = pending.subarray(take);
+
+        if (!stalled && Number.isFinite(stallUploadAtBytes) && transfer.received.length >= stallUploadAtBytes) {
+            stalled = true;
+            socket.pause();
+            console.log('!! Stalling the upload at ' + transfer.received.length + ' bytes (STUB_STALL_UPLOAD_AT_BYTES)');
+        }
 
         const pct = Math.floor((transfer.received.length / transfer.size) * 100);
         console.log('   received ' + transfer.received.length + '/' + transfer.size + ' (' + pct + '%)');
@@ -133,8 +165,8 @@ const server = net.createServer((socket) => {
             case 'M119':
                 respond('CMD M119 Received.');
                 respond('Endstop: X-max:0 Y-max:0 Z-max:0');
-                respond('MachineStatus: READY');
-                respond('MoveMode: READY');
+                respond('MachineStatus: ' + machineStatus);
+                respond('MoveMode: ' + (machineStatus === 'READY' ? 'READY' : 'MOVING'));
                 respond('Status: S:1 L:' + (lightOn ? '1' : '0') + ' J:0 F:0');
                 respond('LED: ' + (lightOn ? '1' : '0'));
                 respond('CurrentFile: ');
@@ -221,6 +253,7 @@ const server = net.createServer((socket) => {
     });
 
     socket.on('error', () => { /* client disconnected */ });
+    socket.on('close', () => console.log('Client disconnected'));
 });
 
 server.listen(8899, '127.0.0.1', () => {
